@@ -4,25 +4,38 @@ on:
   push:
     branches:
     - master
+    - fix-ci
   pull_request:
   schedule:
     - cron:  '0 6 1 * *' # Run on the first day of every month at 06:00 UTC
 
 jobs:
-  build:
-    runs-on: ${{ matrix.os }}-latest
-    strategy:
-      matrix:
-        os: [ubuntu, windows, macos]
-      fail-fast: false
-
-    steps:
-    - uses: actions/checkout@v2
-    - uses: actions-rs/toolchain@v1
-      with:
-        profile: minimal
-        toolchain: stable
-    - name: Build
-      run: cargo build --release --verbose
-    # - name: Run tests
-    #   run: cargo test --verbose
+    build_linux:
+      runs-on: ubuntu-latest
+      steps:
+      - uses: actions/checkout@v2
+      - name: Build
+        run: cargo build --release --verbose
+        
+    build_windows:
+      runs-on: windows-latest
+      steps:
+      - uses: actions/checkout@v2
+      - name: Build
+        run: cargo build --release --verbose 
+        
+    build_macos:
+      runs-on: macos-latest
+      steps:
+      - uses: actions/checkout@v2
+      - name: Build
+        run: cargo build --release --verbose
+        
+    run_tests:
+      runs-on: ubuntu-latest
+      container:
+        image: osgeo/gdal:ubuntu-full-3.6.0
+      steps:
+      - uses: actions/checkout@v2
+      - name: Run tests
+        run: cargo test --release --all-features
