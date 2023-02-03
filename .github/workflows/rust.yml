@@ -4,25 +4,42 @@ on:
   push:
     branches:
     - master
+    - develop
   pull_request:
   schedule:
     - cron:  '0 6 1 * *' # Run on the first day of every month at 06:00 UTC
+  workflow_dispatch:
 
 jobs:
-  build:
-    runs-on: ${{ matrix.os }}-latest
-    strategy:
-      matrix:
-        os: [ubuntu, windows, macos]
-      fail-fast: false
-
-    steps:
-    - uses: actions/checkout@v2
-    - uses: actions-rs/toolchain@v1
-      with:
-        profile: minimal
-        toolchain: stable
-    - name: Build
-      run: cargo build --release --verbose
-    # - name: Run tests
-    #   run: cargo test --verbose
+    build_linux:
+      runs-on: ubuntu-latest
+      steps:
+      - uses: actions/checkout@v2
+      - name: Build
+        run: cargo build --release --verbose
+        
+    build_windows:
+      runs-on: windows-latest
+      steps:
+      - uses: actions/checkout@v2
+      - name: Build
+        run: cargo build --release --verbose 
+        
+    build_macos:
+      runs-on: macos-latest
+      steps:
+      - uses: actions/checkout@v2
+      - name: Build
+        run: cargo build --release --verbose
+        
+    run_tests:
+      runs-on: ubuntu-latest
+      steps:
+      - uses: actions/checkout@v2
+      - name: Get GDAL
+        run: |
+            sudo add-apt-repository ppa:ubuntugis/ppa
+            sudo apt-get update
+            sudo apt-get install libgdal-dev
+      - name: Run tests
+        run: cargo test --release --all-features
